@@ -1,20 +1,14 @@
-from cdp import Cdp, Wallet  # Changed from cdp_sdk to cdp
 import json
 from swarm import Agent
+from cdp import *
 from typing import List, Dict, Any
 import os
 from openai import OpenAI
 from decimal import Decimal
 from typing import Union
 
-# Get configuration from environment variables
-API_KEY_NAME = os.environ.get("CDP_API_KEY_NAME")
-PRIVATE_KEY = os.environ.get("CDP_PRIVATE_KEY", "").replace('\\n', '\n')
-
-# Configure CDP with environment variables
-Cdp.configure(API_KEY_NAME, PRIVATE_KEY)
-agent_wallet = Wallet.create()
-print(f"Agent wallet address: {agent_wallet.default_address.address_id}")
+# Configure the CDP SDK
+Cdp.configure_from_json("./examples/based_agent/cdp_api_key.json")
 
 # If you want to create a wallet on Base Mainnet, use Wallet.create(network_id="base-mainnet") and comment out the faucet line
 agent_wallet = Wallet.create()

@@ -144,7 +144,7 @@ based_agent = Agent(
         transfer_asset, 
         get_balance, 
         request_eth_from_faucet, 
-        generate_art, 
+        #generate_art, 
         deploy_nft, 
         mint_nft,
     ],

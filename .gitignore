@@ -1,3 +1,6 @@
+# cdp api key
+examples/based_agent/cdp_api_key.json
+
 # Editors
 .vscode/
 .idea/

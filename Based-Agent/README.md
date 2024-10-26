@@ -1,30 +1,30 @@
-# BasedAgent 🚀
+# 🔵 Based Agent
 
-An experimental playground for autonomous blockchain interactions on Base Layer 2!
+An experimental playground for autonomous onchain interactions. 
 
-## 🎉 Introduction
+## Introduction
 
-Welcome to BasedAgent—your AI-powered companion for exploring the exciting world of autonomous blockchain interactions! Built on top of the Coinbase Developer Platform (CDP) and OpenAI's Swarm, BasedAgent lets you dive into autonomous on-chain actions like never before.
+Based Agent helps LLM agents directly interact with the blockchain, built on top of the [Coinbase Developer Platform (CDP)](https://cdp.coinbase.com/) and OpenAI's [Swarm](https://github.com/openai/swarm). 
 
-### 🌟 Key Features
+### Key Features
 
-- **🤖 Autonomous Execution**: The agent thinks, decides, and acts on the blockchain autonomously.
-- **🤑 Token Management**: Create and manage ERC-20 tokens with ease.
-- **🌟 NFT Deployment**: Deploy and mint NFTs autonomously.
-- **💸 Asset Transfers**: Transfer assets between addresses without manual intervention.
-- **📈 Balance Checks**: Keep tabs on wallet balances on the fly.
-- **⛽ ETH Faucet Requests**: Automatically request testnet ETH when needed.
-- **🖼️ Art Generation via DALL-E**: Generate stunning artwork using AI.
+- **Autonomous execution**: The agent thinks, decides, and acts onchain autonomously.
+- **Token deployement**: Create and manage ERC-20 tokens.
+- **NFT Deployment**: Deploy and mint NFTs. 
+- **Asset transfers**: Transfer assets between addresses without manual intervention.
+- **Balance checks**: Keep tabs on wallet balances.
+- **ETH faucet requests**: Automatically request testnet ETH when needed.
+- **Art generation via DALL-E**: Generate artwork using AI.
 
-### 🛡️ Why BasedAgent?
+### Why BasedAgent?
 
-Imagine an AI agent that not only interacts with the blockchain but does so creatively and autonomously. Whether you're a developer, a blockchain enthusiast, or someone curious about AI, BasedAgent offers a unique and exciting playground to:
+Imagine an AI agent that not only interacts with the blockchain but does so creatively and autonomously. Whether you're a developer, an artist, or someone curious about AI, Based Agent offers a unique and exciting playground to:
 
 - Experiment with autonomous agent capabilities.
 - Explore on-chain actions without manual coding.
-- Understand the potential of AI in blockchain interactions.
+- Understand the potential of AI onchain.
 
-## 🚀 Get Started in Minutes!
+## Get Started in Minutes!
 
 ### 1️⃣ Prerequisites
 - Python 3.7+
@@ -51,23 +51,23 @@ Alternatively, you can start the based agent manually by navigating to the Repli
 python run.py
 ```
 
-### 4️⃣ Watch the Magic Happen! ✨
+### Watch the Magic Happen! ✨
 
 The Based Agent will start its autonomous loop:
 
 - Wakes up every 10 seconds.
-- Chooses an on-chain action based on its capabilities.
-- Executes the action on the blockchain.
-- Prints results in a user-friendly format.
+- Chooses an onchain action based on its capabilities.
+- Executes the action onchain.
+- Prints results in a human-readable format.
 
 ## 🤔 How Does BasedAgent Work?
 
-BasedAgent leverages the power of AI to make decisions and interact with the blockchain autonomously. Here's what happens under the hood:
+Based Agent makes decisions and interacts with the blockchain autonomously. Here's what happens under the hood:
 
-- **Decision Making**: The agent decides what action to perform next.
-- **On-Chain Interaction**: Executes blockchain transactions using the CDP SDK.
-- **Art Generation**: If needed, generates art using OpenAI's DALL-E.
-- **Feedback Loop**: Analyzes results and plans the next action.
+- **Decision making**: The agent decides what action to perform next.
+- **Onchain interaction**: Executes blockchain transactions using the CDP SDK.
+- **Art generation**: If needed, generates art using OpenAI's DALL-E.
+- **Feedback loop**: Analyzes results and plans the next action.
 
 ## 🔧 Available Functions
 
@@ -93,9 +93,9 @@ Unlock a world of possibilities with these built-in functions:
 
 - `create_liquidity_pool(token0_address, token1_address, fee_tier, amount0, amount1)`: Create a Uniswap V3 liquidity pool and add initial liquidity.
 
-## 🔥 Live Demo
+## Live Demo
 
-Curious to see BasedAgent in action? Here's a sneak peek:
+Curious to see Based Agent in action? Here's a sneak peek:
 
 ```bash
 Starting autonomous Based Agent loop...
@@ -111,9 +111,9 @@ Successfully deployed NFT contract 'Cyber Artifacts' (CYART) at address 0xABC123
 
 ## 🤖 Behind the Scenes
 
-BasedAgent uses:
+Based Agent uses:
 
-- **Coinbase Developer Platform SDK**: For seamless blockchain interactions.
+- **Coinbase Developer Platform SDK**: For seamless onchain interactions.
 - **OpenAI Swarm**: Powers the agent's autonomous decision-making.
 - **DALL-E**: Generates art from textual descriptions.
 
@@ -139,11 +139,11 @@ Have questions or need assistance?
 
 - **Coinbase Developer Platform**: [Documentation](https://developers.coinbase.com)
 - **OpenAI Swarm**: [Learn More](https://www.openai.com)
-- **Base Layer 2**: [Explore Base](https://base.org)
+- **Base**: [Explore Base](https://base.org)
 
 ## ❤️ Acknowledgements
 
-BasedAgent is made possible thanks to:
+Based Agent is made possible thanks to:
 
 - **Coinbase Developer Platform SDK**: [Documentation](https://docs.cdp.coinbase.com/cdp-apis/docs/welcome)
 - **OpenAI Swarm (experimental)**: [Documentation](https://github.com/openai/swarm)

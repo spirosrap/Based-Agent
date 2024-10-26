@@ -8,8 +8,11 @@ from decimal import Decimal
 from typing import Union
 from web3 import Web3
 from web3.exceptions import ContractLogicError
+from cdp.errors import ApiError, UnsupportedAssetError
+
+
 # Configure the CDP SDK
-Cdp.configure_from_json("./examples/based_agent/cdp_api_key.json")
+Cdp.configure_from_json("./Based-Agent/cdp_api_key.json")
 
 # If you want to create a wallet on Base Mainnet, use Wallet.create(network_id="base-mainnet") and comment out the faucet line
 agent_wallet = Wallet.create()
@@ -33,9 +36,23 @@ def transfer_asset(amount, asset_id, destination_address):
         asset_id: Asset identifier ("eth", "usdc" are the only supported values) or contract address of another ERC-20 token. Unless the asset is ETH or USDC, you must use the contract address of the token.
         destination_address: Recipient's address
     """
-    transfer = agent_wallet.transfer(amount, asset_id, destination_address)
-    transfer.wait()
-    return f"Transferred {amount} {asset_id} to {destination_address}"
+    try:
+        # Check if the asset exists and is ready for transfer
+        try:
+            Asset.fetch(asset_id)
+        except ApiError as e:
+            if e.api_code == "400":
+                return f"The asset {asset_id} is not yet available for transfer. It may have been recently deployed. Please try again in about 30 minutes."
+            else:
+                raise e
+
+        transfer = agent_wallet.transfer(amount, asset_id, destination_address)
+        transfer.wait()
+        return f"Transferred {amount} {asset_id} to {destination_address}"
+    except UnsupportedAssetError as e:
+        return f"Error: The asset {asset_id} is not supported on this network. It may have been recently deployed. Please try again in about 30 minutes."
+    except Exception as e:
+        return f"Error transferring asset: {str(e)}. If this is a custom token, it may have been recently deployed. Please try again in about 30 minutes, as it needs to be indexed by CDP first."
 
 def get_balance(asset_id):
     """Get the balance of a specific asset in the agent's wallet.
@@ -174,6 +191,7 @@ BASENAMES_REGISTRAR_CONTROLLER_ADDRESS_TESTNET = "0x49aE3cC2e3AA768B1e5654f5D3C6
 L2_RESOLVER_ADDRESS_MAINNET = "0xC6d566A56A1aFf6508b41f6c90ff131615583BCD"
 L2_RESOLVER_ADDRESS_TESTNET = "0x6533C94869D28fAA8dF77cc63f9e2b2D6Cf77eBA"
 
+# Create registration arguments for Basenames
 def create_register_contract_method_args(base_name: str, address_id: str, is_mainnet: bool) -> dict:
     """
     Create registration arguments for Basenames.

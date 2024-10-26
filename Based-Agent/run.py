@@ -137,17 +137,17 @@ def choose_mode():
         print("\nAvailable modes:")
         print("1. chat    - Interactive chat mode")
         print("2. auto    - Autonomous action mode")
-        print("3. openai  - AI-to-agent conversation mode")
+        print("3. two-agent - AI-to-agent conversation mode")
         
         choice = input("\nChoose a mode (enter number or name): ").lower().strip()
         
         mode_map = {
             '1': 'chat',
             '2': 'auto',
-            '3': 'openai',
+            '3': 'two-agent',
             'chat': 'chat',
             'auto': 'auto',
-            'openai': 'openai'
+            'two-agent': 'two-agent'
         }
         
         if choice in mode_map:
@@ -160,7 +160,7 @@ def main():
     mode_functions = {
         'chat': lambda: run_demo_loop(based_agent),
         'auto': lambda: run_autonomous_loop(based_agent),
-        'openai': lambda: run_openai_conversation_loop(based_agent)
+        'two-agent': lambda: run_openai_conversation_loop(based_agent)
     }
     
     print(f"\nStarting {mode} mode...")

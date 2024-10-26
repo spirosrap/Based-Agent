@@ -69,7 +69,7 @@ def run_autonomous_loop(agent, interval=10):
         # Generate a thought
         thought = (
             "Be creative and do something interesting on the Base blockchain. "
-            "Don't take any more input from me. Choose an action and execute it now."
+            "Don't take any more input from me. Choose an action and execute it now. Choose those that highlight your identity and abilities best."
         )
         messages.append({"role": "user", "content": thought})
         

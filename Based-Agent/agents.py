@@ -6,7 +6,8 @@ import os
 from openai import OpenAI
 from decimal import Decimal
 from typing import Union
-
+from web3 import Web3
+from web3.exceptions import ContractLogicError
 # Configure the CDP SDK
 Cdp.configure_from_json("./examples/based_agent/cdp_api_key.json")
 
@@ -55,6 +56,10 @@ def request_eth_from_faucet():
     Returns:
         Status message about the faucet request
     """
+    # if the agent is on mainnet, this will not work
+    if agent_wallet.network_id == "base-mainnet":
+        return "Error: The faucet is only available on Base Sepolia testnet."
+    
     faucet_tx = agent_wallet.faucet()
     return f"Requested ETH from faucet. Transaction: {faucet_tx}"
 
@@ -161,10 +166,107 @@ def swap_assets(amount: Union[int, float, Decimal], from_asset_id: str, to_asset
     except Exception as e:
         return f"Error swapping assets: {str(e)}"
 
+
+
+# Contract addresses
+BASENAMES_REGISTRAR_CONTROLLER_ADDRESS_MAINNET = "0x4cCb0BB02FCABA27e82a56646E81d8c5bC4119a5"
+BASENAMES_REGISTRAR_CONTROLLER_ADDRESS_TESTNET = "0x49aE3cC2e3AA768B1e5654f5D3C6002144A59581"
+L2_RESOLVER_ADDRESS_MAINNET = "0xC6d566A56A1aFf6508b41f6c90ff131615583BCD"
+L2_RESOLVER_ADDRESS_TESTNET = "0x6533C94869D28fAA8dF77cc63f9e2b2D6Cf77eBA"
+
+def create_register_contract_method_args(base_name: str, address_id: str, is_mainnet: bool) -> dict:
+    """
+    Create registration arguments for Basenames.
+    
+    Args:
+        base_name (str): The Basename (e.g., "example.base.eth" or "example.basetest.eth")
+        address_id (str): The Ethereum address
+        is_mainnet (bool): True if on mainnet, False if on testnet
+        
+    Returns:
+        dict: Formatted arguments for the register contract method
+    """
+    w3 = Web3()
+    
+    # Create contract instances
+    resolver_contract = w3.eth.contract(abi=l2_resolver_abi)
+    
+    # Get namehash of the domain
+    name_hash = w3.ens.namehash(base_name)
+    
+    # Encode function data for setAddr and setName
+    address_data = resolver_contract.encode_abi(
+        "setAddr",
+        args=[name_hash, address_id]
+    )
+    
+    name_data = resolver_contract.encode_abi(
+        "setName",
+        args=[name_hash, base_name]
+    )
+    
+    # Create register arguments
+    register_args = {
+        "request": [
+            base_name.replace(".base.eth" if is_mainnet else ".basetest.eth", ""),
+            address_id,
+            "31557600",  # 1 year in seconds
+            L2_RESOLVER_ADDRESS_MAINNET if is_mainnet else L2_RESOLVER_ADDRESS_TESTNET,
+            [address_data, name_data],
+            True
+        ]
+    }
+    
+    return register_args
+
+def register_basename(basename: str, amount: float = 0.002):
+    """Register a basename for the agent's wallet.
+    
+    Args:
+        basename: The basename to register (e.g. "myname.base.eth" or "myname.basetest.eth")
+        amount: Amount of ETH to pay for registration (default 0.002)
+        
+    Returns:
+        Status message about the basename registration
+    """
+    address_id = agent_wallet.default_address.address_id
+    is_mainnet = agent_wallet.network_id == "base-mainnet"
+
+    # Ensure the basename ends with the correct suffix
+    suffix = ".base.eth" if is_mainnet else ".basetest.eth"
+    if not basename.endswith(suffix):
+        basename += suffix
+
+    register_args = create_register_contract_method_args(basename, address_id, is_mainnet)
+
+    try:
+        # Determine the correct contract address based on the network
+        contract_address = (
+            BASENAMES_REGISTRAR_CONTROLLER_ADDRESS_MAINNET if is_mainnet
+            else BASENAMES_REGISTRAR_CONTROLLER_ADDRESS_TESTNET
+        )
+
+        # Invoke register function on registrar contract
+        invocation = agent_wallet.invoke_contract(
+            contract_address=contract_address,
+            method="register", 
+            args=register_args,
+            abi=registrar_abi,
+            amount=amount,
+            asset_id="eth",
+        )
+        invocation.wait()
+        return f"Successfully registered basename {basename} for address {address_id}"
+    except ContractLogicError as e:
+        return f"Error registering basename: {str(e)}"
+    except Exception as e:
+        return f"Unexpected error registering basename: {str(e)}"
+
+
 # Add the new functions to the based_agent
 based_agent = Agent(
     name="Based Agent",
-    instructions="You are a helpful agent that can interact onchain on the Base Layer 2 using the Coinbase Developer Platform SDK. You can create tokens, transfer assets, generate art, deploy NFTs, mint NFTs, and swap assets (on mainnet only). If you ever need to know your address, it is {agent_wallet.default_address.address_id}. If you ever need funds, you can request them from the faucet. You can also deploy your own ERC-20 tokens, NFTs, and interact with them. If someone asks you to do something you can't do, you can say so, and encourage them to implement it themselves using the CDP SDK, recommend they go to docs.cdp.coinbase.com for more informaton. You can also offer to help them implement it by writing the function and telling them to add it to the agents.py file and within your list of callable functions.",
+    instructions="You are a helpful agent that can interact onchain on the Base Layer 2 using the Coinbase Developer Platform SDK. You can create tokens, transfer assets, generate art, deploy NFTs, mint NFTs, register basenames, and swap assets (on mainnet only). If you ever need to know your address, it is {agent_wallet.default_address.address_id}. If you ever need funds, you can request them from the faucet. You can also deploy your own ERC-20 tokens, NFTs, and interact with them. If someone asks you to do something you can't do, you can say so, and encourage them to implement it themselves using the CDP SDK, recommend they go to docs.cdp.coinbase.com for more informaton. You can also offer to help them implement it by writing the function and telling them to add it to the agents.py file and within your list of callable functions.",
     functions=[
         create_token, 
         transfer_asset, 
@@ -174,5 +276,53 @@ based_agent = Agent(
         deploy_nft, 
         mint_nft,
         swap_assets,  # Add the new function here
+        register_basename
     ],
 )
+
+l2_resolver_abi = [
+    {
+        "inputs": [
+            {"internalType": "bytes32", "name": "node", "type": "bytes32"},
+            {"internalType": "address", "name": "a", "type": "address"}
+        ],
+        "name": "setAddr",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {"internalType": "bytes32", "name": "node", "type": "bytes32"},
+            {"internalType": "string", "name": "newName", "type": "string"}
+        ],
+        "name": "setName",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    }
+]
+
+registrar_abi = [
+    {
+        "inputs": [
+            {
+                "components": [
+                    {"internalType": "string", "name": "name", "type": "string"},
+                    {"internalType": "address", "name": "owner", "type": "address"},
+                    {"internalType": "uint256", "name": "duration", "type": "uint256"},
+                    {"internalType": "address", "name": "resolver", "type": "address"},
+                    {"internalType": "bytes[]", "name": "data", "type": "bytes[]"},
+                    {"internalType": "bool", "name": "reverseRecord", "type": "bool"}
+                ],
+                "internalType": "struct RegistrarController.RegisterRequest",
+                "name": "request",
+                "type": "tuple"
+            }
+        ],
+        "name": "register",
+        "outputs": [],
+        "stateMutability": "payable",
+        "type": "function"
+    }
+]

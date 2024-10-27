@@ -16,7 +16,7 @@ Based Agent helps LLM agents directly interact with the blockchain, built on top
 - **ETH faucet requests**: Automatically request testnet ETH when needed.
 - **Art generation via DALL-E**: Generate artwork using AI.
 
-### Why BasedAgent?
+### Why Based Agent?
 
 Imagine an AI agent that not only interacts with the blockchain but does so creatively and autonomously. Whether you're a developer, an artist, or someone curious about AI, Based Agent offers a unique and exciting playground to:
 
@@ -60,7 +60,7 @@ The Based Agent will start its autonomous loop:
 - Executes the action onchain.
 - Prints results in a human-readable format.
 
-## 🤔 How Does BasedAgent Work?
+## 🤔 How Does Based Agent Work?
 
 Based Agent makes decisions and interacts with the blockchain autonomously. Here's what happens under the hood:
 

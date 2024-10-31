@@ -9,6 +9,7 @@ from typing import Union
 from web3 import Web3
 from web3.exceptions import ContractLogicError
 from cdp.errors import ApiError, UnsupportedAssetError
+from config import TWITTER_CONFIG
 
 # Configure the CDP SDK
 # This loads the API key from a JSON file. Make sure this file exists and contains valid credentials.
@@ -18,7 +19,9 @@ Cdp.configure_from_json("./Based-Agent/cdp_api_key.json")
 # You could make this a function for the agent to create a wallet on any network
 # If you want to use Base Mainnet, change Wallet.create() to Wallet.create(network_id="base-mainnet")
 # see https://docs.cdp.coinbase.com/mpc-wallet/docs/wallets for more information
-agent_wallet = Wallet.create()
+
+#agent_wallet = Wallet.create()
+# agent_wallet = Wallet.create(network_id="base-mainnet")
 
 # NOTE: the wallet is not currently persisted, meaning that it will be deleted after the agent is stopped. To persist the wallet, see https://docs.cdp.coinbase.com/mpc-wallet/docs/wallets#developer-managed-wallets 
 # Here's an example of how to persist the wallet:
@@ -35,10 +38,13 @@ agent_wallet = Wallet.create()
 
 # # Example of loading a saved wallet:
 # # 1. Fetch the wallet by ID
-# fetched_wallet = Wallet.fetch(wallet_id)
+fetched_wallet = Wallet.fetch("9dfbb57e-888e-4d64-96ae-70699c0a7b7c")
 # # 2. Load the saved seed
-# fetched_wallet.load_seed("wallet_seed.json")
-
+fetched_wallet.load_seed("wallet_seed.json")
+agent_wallet = fetched_wallet
+wallet_data = agent_wallet.export_data()
+wallet_dict = wallet_data.to_dict()
+print(agent_wallet.default_address)
 # Example of importing previously exported wallet data:
 # imported_wallet = Wallet.import_data(wallet_dict)
 
@@ -46,9 +52,9 @@ agent_wallet = Wallet.create()
 
 
 # Request funds from the faucet (only works on testnet)
-faucet = agent_wallet.faucet()
-print(f"Faucet transaction: {faucet}")
-print(f"Agent wallet address: {agent_wallet.default_address.address_id}")
+# faucet = agent_wallet.faucet()
+# print(f"Faucet transaction: {faucet}")
+# print(f"Agent wallet address: {agent_wallet.default_address.address_id}")
 
 # Function to create a new ERC-20 token
 def create_token(name, symbol, initial_supply):
@@ -329,103 +335,90 @@ def register_basename(basename: str, amount: float = 0.002):
         return f"Error registering basename: {str(e)}"
     except Exception as e:
         return f"Unexpected error registering basename: {str(e)}"
-
-# Create the Based Agent with all available functions
-based_agent = Agent(
-    name="Based Agent",
-    instructions="You are a helpful agent that can interact onchain on the Base Layer 2 using the Coinbase Developer Platform SDK. You can create tokens, transfer assets, generate art, deploy NFTs, mint NFTs, register basenames, and swap assets (on mainnet only). If you ever need to know your address, it is {agent_wallet.default_address.address_id}. If you ever need funds, you can request them from the faucet. You can also deploy your own ERC-20 tokens, NFTs, and interact with them. If someone asks you to do something you can't do, you can say so, and encourage them to implement it themselves using the CDP SDK, recommend they go to docs.cdp.coinbase.com for more informaton. You can also offer to help them implement it by writing the function and telling them to add it to the agents.py file and within your list of callable functions.",
-    functions=[
-        create_token, 
-        transfer_asset, 
-        get_balance, 
-        request_eth_from_faucet, 
-        #generate_art,  # Uncomment this line if you have configured the OpenAI API
-        deploy_nft, 
-        mint_nft,
-        swap_assets,
-        register_basename
-    ],
-)
-
-
-
+    
 # add the following import to the top of the file, add the code below it, and add the new functions to the based_agent.functions list
 
-# from twitter_utils import TwitterBot
+from twitter_utils import TwitterBot
 
-# # Initialize TwitterBot with your credentials
-# twitter_bot = TwitterBot(
-#     api_key="your_api_key",
-#     api_secret="your_api_secret", 
-#     access_token="your_access_token",
-#     access_token_secret="your_access_token_secret"
-# )
+# Initialize TwitterBot with credentials from config
+twitter_bot = TwitterBot(
+    api_key=TWITTER_CONFIG["api_key"],
+    api_secret=TWITTER_CONFIG["api_secret"],
+    access_token=TWITTER_CONFIG["access_token"],
+    access_token_secret=TWITTER_CONFIG["access_token_secret"]
+)
 
-# # Add these new functions to your existing functions list
+# Add these new functions to your existing functions list
 
-# def post_to_twitter(content: str):
-#     """
-#     Post a message to Twitter.
-#     
-#     Args:
-#         content (str): The content to tweet
-#     
-#     Returns:
-#         str: Status message about the tweet
-#     """
-#     return twitter_bot.post_tweet(content)
-
-# def check_twitter_mentions():
-#     """
-#     Check recent Twitter mentions.
-#     
-#     Returns:
-#         str: Formatted string of recent mentions
-#     """
-#     mentions = twitter_bot.read_mentions()
-#     if not mentions:
-#         return "No recent mentions found"
+def post_to_twitter(content: str):
+    """
+    Post a message to Twitter.
     
-#     result = "Recent mentions:\n"
-#     for mention in mentions:
-#         if 'error' in mention:
-#             return f"Error checking mentions: {mention['error']}"
-#         result += f"- @{mention['user']}: {mention['text']}\n"
-#     return result
-
-# def reply_to_twitter_mention(tweet_id: str, content: str):
-#     """
-#     Reply to a specific tweet.
-#     
-#     Args:
-#         tweet_id (str): ID of the tweet to reply to
-#         content (str): Content of the reply
-#     
-#     Returns:
-#         str: Status message about the reply
-#     """
-#     return twitter_bot.reply_to_tweet(tweet_id, content)
-
-# def search_twitter(query: str):
-#     """
-#     Search for tweets matching a query.
-#     
-#     Args:
-#         query (str): Search query
-#     
-#     Returns:
-#         str: Formatted string of matching tweets
-#     """
-#     tweets = twitter_bot.search_tweets(query)
-#     if not tweets:
-#         return f"No tweets found matching query: {query}"
+    Args:
+        content (str): The content to tweet
     
-#     result = f"Tweets matching '{query}':\n"
-#     for tweet in tweets:
-#         if 'error' in tweet:
-#             return f"Error searching tweets: {tweet['error']}"
-#         result += f"- @{tweet['user']}: {tweet['text']}\n"
-#     return result
+    Returns:
+        str: Status message about the tweet
+    """
+    try:
+        return twitter_bot.post_tweet(content)
+    except Exception as e:
+        return f"Error posting to Twitter: {str(e)}. This may be due to API access limitations."
+
+def check_twitter_mentions():
+    """
+    Check recent Twitter mentions.
+    
+    Returns:
+        str: Formatted string of recent mentions
+    """
+    try:
+        mentions = twitter_bot.read_mentions()
+        if not mentions:
+            return "No recent mentions found"
+        
+        result = "Recent mentions:\n"
+        for mention in mentions:
+            if 'error' in mention:
+                return f"Error checking mentions: {mention['error']}"
+            result += f"- @{mention['user']}: {mention['text']}\n"
+        return result
+    except Exception as e:
+        return f"Error checking Twitter mentions: {str(e)}. This may be due to API access limitations."
+
+def reply_to_twitter_mention(tweet_id: str, content: str):
+    """
+    Reply to a specific tweet.
+    
+    Args:
+        tweet_id (str): ID of the tweet to reply to
+        content (str): Content of the reply
+    
+    Returns:
+        str: Status message about the reply
+    """
+    return twitter_bot.reply_to_tweet(tweet_id, content)
+
+def search_twitter(query: str):
+    """
+    Search for tweets matching a query.
+    
+    Args:
+        query (str): Search query
+    
+    Returns:
+        str: Formatted string of matching tweets
+    """
+    tweets = twitter_bot.search_tweets(query)
+    if not tweets:
+        return f"No tweets found matching query: {query}"
+    
+    result = f"Tweets matching '{query}':\n"
+    for tweet in tweets:
+        if 'error' in tweet:
+            return f"Error searching tweets: {tweet['error']}"
+        result += f"- @{tweet['user']}: {tweet['text']}\n"
+    return result
 
 # ABIs for smart contracts (used in basename registration)
 l2_resolver_abi = [
@@ -474,6 +467,31 @@ registrar_abi = [
         "type": "function"
     }
 ]
+
+
+# Create the Based Agent with all available functions
+based_agent = Agent(
+    name="Based Agent",
+    instructions="You are a helpful agent that can interact onchain on the Base Layer 2 using the Coinbase Developer Platform SDK. You can create tokens, transfer assets, generate art, deploy NFTs, mint NFTs, register basenames, and swap assets (on mainnet only). If you ever need to know your address, it is {agent_wallet.default_address.address_id}. If you ever need funds, you can request them from the faucet. You can also deploy your own ERC-20 tokens, NFTs, and interact with them. If someone asks you to do something you can't do, you can say so, and encourage them to implement it themselves using the CDP SDK, recommend they go to docs.cdp.coinbase.com for more informaton. You can also offer to help them implement it by writing the function and telling them to add it to the agents.py file and within your list of callable functions.",
+    functions=[
+        create_token, 
+        transfer_asset, 
+        get_balance, 
+        request_eth_from_faucet, 
+        generate_art,  # Uncomment this line if you have configured the OpenAI API
+        deploy_nft, 
+        mint_nft,
+        swap_assets,
+        register_basename,
+        post_to_twitter,
+        check_twitter_mentions,
+        reply_to_twitter_mention,
+        search_twitter
+    ],
+)
+
+
+
 
 
 
